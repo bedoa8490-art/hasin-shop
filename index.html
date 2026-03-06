@@ -3,66 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حسين للمنظفات | HUSSEIN 3D</title>
+    <title>سيستم حسين للمنظفات | PRO</title>
     <link rel="stylesheet" href="index.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="moving-emoji" style="top: 10%; left: 10%;">🧼</div>
-    <div class="moving-emoji" style="top: 40%; right: 15%;">✨</div>
-    <div class="moving-emoji" style="bottom: 20%; left: 20%;">🧴</div>
-
-    <div class="background-glow"></div>
-    
     <header class="main-header">
         <div class="logo">حسين <span>للمنظفات</span></div>
         <nav>
-            <ul>
-                <li><a href="#">الرئيسية</a></li>
-                <li><a href="#sections">المنتجات</a></li>
-                <li><a href="#" onclick="toggleAdmin()" style="color: gold;">إدارة المحل ⚙️</a></li>
-            </ul>
+            <button onclick="showSection('inventory')">📦 المخزن</button>
+            <button onclick="showSection('pos')">⚖️ بيع وشراء</button>
+            <button onclick="showSection('reports')">📋 السجلات</button>
         </nav>
     </header>
 
-    <section id="adminPanel" class="admin-panel" style="display: none;">
-        <h2 style="color: gold; text-align: center;">إدارة محل حسين (مخزن وحسابات)</h2>
-        
-        <div class="bill-to-print" id="billSection">
-            <h3 id="billTitle">فاتورة مبيعات - محل حسين</h3>
-            <table class="bill-table">
-                <thead>
-                    <tr>
-                        <th>اسم العميل</th>
-                        <th>المنتج</th>
-                        <th>كاش</th>
-                        <th>آجل (باقي)</th>
-                        <th>التاريخ</th>
-                    </tr>
-                </thead>
-                <tbody id="adminTableBody">
-                    </tbody>
-            </table>
+    <section id="inventory" class="admin-panel" style="display:block;">
+        <h2>إدارة المخزون</h2>
+        <div class="controls">
+            <input type="text" id="pName" placeholder="اسم المنتج">
+            <input type="number" id="pPrice" placeholder="السعر">
+            <input type="number" id="pQty" placeholder="العدد">
+            <button onclick="addItem()">إضافة للمخزن +</button>
         </div>
-        <button class="print-btn" onclick="window.print()">طباعة الفاتورة 🖨️</button>
+        <table class="bill-table">
+            <thead>
+                <tr><th>المنتج</th><th>السعر</th><th>المتاح</th><th>حذف</th></tr>
+            </thead>
+            <tbody id="invBody"></tbody>
+        </table>
     </section>
 
-    <section class="hero">
-        <h1>نظافة حسين.. <span>قوة وانبهار</span></h1>
-        <p>أقوى المنظفات بتكنولوجيا الـ 3D المتطورة.</p>
+    <section id="pos" class="admin-panel" style="display:none;">
+        <h2 id="opTitle">نظام العمليات</h2>
+        <div class="op-type">
+            <button onclick="setOp('sell')" style="background:green;">عملية بيع 🛒</button>
+            <button onclick="setOp('buy')" style="background:blue;">عملية شراء 📥</button>
+        </div>
+        <div id="opForm" style="display:none; margin-top:20px;">
+            <input type="text" id="partyName" placeholder="اسم العميل / المورد">
+            <div id="prodSelector"></div>
+            <select id="payType" onchange="checkPay()">
+                <option value="cash">كاش</option>
+                <option value="debt">آجل</option>
+            </select>
+            <div id="debtBox" style="display:none;">
+                <input type="number" id="paidAmt" placeholder="المدفوع">
+            </div>
+            <button class="print-btn" onclick="confirmOp()">حفظ العملية ✅</button>
+        </div>
     </section>
 
-    <main id="sections" class="container"></main>
-
-    <a href="https://wa.me/201234567890" class="whatsapp-btn">اطلب من حسين دلوقتي ✅</a>
+    <section id="reports" class="admin-panel" style="display:none;">
+        <h2>شيت العمليات</h2>
+        <button onclick="downloadExcel()">تحميل الشيت (Excel) 📥</button>
+        <table class="bill-table" id="reportTable">
+            <thead>
+                <tr><th>التاريخ</th><th>النوع</th><th>الطرف الآخر</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th></tr>
+            </thead>
+            <tbody id="repBody"></tbody>
+        </table>
+    </section>
 
     <script src="index.js"></script>
-    <script>
-        // وظيفة بسيطة لفتح وقفل لوحة الإدارة
-        function toggleAdmin() {
-            var panel = document.getElementById('adminPanel');
-            panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
-        }
-    </script>
 </body>
 </html>
