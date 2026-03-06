@@ -8,22 +8,61 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="moving-emoji" style="top: 10%; left: 10%;">🧼</div>
+    <div class="moving-emoji" style="top: 40%; right: 15%;">✨</div>
+    <div class="moving-emoji" style="bottom: 20%; left: 20%;">🧴</div>
+
     <div class="background-glow"></div>
+    
     <header class="main-header">
         <div class="logo">حسين <span>للمنظفات</span></div>
         <nav>
             <ul>
                 <li><a href="#">الرئيسية</a></li>
                 <li><a href="#sections">المنتجات</a></li>
+                <li><a href="#" onclick="toggleAdmin()" style="color: gold;">إدارة المحل ⚙️</a></li>
             </ul>
         </nav>
     </header>
+
+    <section id="adminPanel" class="admin-panel" style="display: none;">
+        <h2 style="color: gold; text-align: center;">إدارة محل حسين (مخزن وحسابات)</h2>
+        
+        <div class="bill-to-print" id="billSection">
+            <h3 id="billTitle">فاتورة مبيعات - محل حسين</h3>
+            <table class="bill-table">
+                <thead>
+                    <tr>
+                        <th>اسم العميل</th>
+                        <th>المنتج</th>
+                        <th>كاش</th>
+                        <th>آجل (باقي)</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody">
+                    </tbody>
+            </table>
+        </div>
+        <button class="print-btn" onclick="window.print()">طباعة الفاتورة 🖨️</button>
+    </section>
+
     <section class="hero">
         <h1>نظافة حسين.. <span>قوة وانبهار</span></h1>
         <p>أقوى المنظفات بتكنولوجيا الـ 3D المتطورة.</p>
     </section>
+
     <main id="sections" class="container"></main>
+
     <a href="https://wa.me/201234567890" class="whatsapp-btn">اطلب من حسين دلوقتي ✅</a>
+
     <script src="index.js"></script>
+    <script>
+        // وظيفة بسيطة لفتح وقفل لوحة الإدارة
+        function toggleAdmin() {
+            var panel = document.getElementById('adminPanel');
+            panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>
