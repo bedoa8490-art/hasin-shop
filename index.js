@@ -1,89 +1,79 @@
-// نظام تخزين البيانات (المخزن والعملاء) في ذاكرة المتصفح
-let inventory = {}; 
-let salesData = JSON.parse(localStorage.getItem('hussein_sales')) || [];
+let prods = JSON.parse(localStorage.getItem('h_p')) || [];
+let trans = JSON.parse(localStorage.getItem('h_t')) || [];
+let mode = "";
 
-Document.addEventListener('DOMContentLoaded', () => {
-    updateAdminTable(); // تحديث جدول الإدارة عند الفتح
-
-    fetch('products.json')
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('sections');
-            container.innerHTML = '';
-            const list = [...data.liquids, ...data.tools];
-            
-            list.forEach(p => {
-                // تسجيل الكمية في النظام (افتراضياً 100 لكل منتج لو مش متحدد)
-                inventory[p.name] = 100; 
-
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div style="font-size: 50px; margin-bottom: 15px;">✨</div>
-                    <h3>${p.name}</h3>
-                    <p style="color: red; font-weight: bold;">${p.price} جنيه</p>
-                    <div style="margin-bottom:10px; font-size:0.8rem;">المخزن: <span id="stock-${p.name}">100</span></div>
-                    <button style="background:red; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;" 
-                            onclick="processOrder('${p.name}', ${p.price})">اطلب الآن</button>
-                `;
-                container.appendChild(card);
-            });
-        });
-});
-
-// وظيفة معالجة الأوردر وتسجيله (كاش وآجل)
-function processOrder(productName, price) {
-    const customerName = prompt("اسم الزبون:");
-    if (!customerName) return;
-
-    const paid = prompt(`المبلغ المدفوع (سعر المنتج ${price}):`, price);
-    const change = price - paid;
-    const status = change > 0 ? "آجل" : "كاش";
-
-    // تسجيل البيعة
-    const sale = {
-        customer: customerName,
-        product: productName,
-        paid: paid,
-        remaining: change,
-        date: new Date().toLocaleString('ar-EG')
-    };
-
-    salesData.push(sale);
-    localStorage.setItem('hussein_sales', JSON.stringify(salesData));
-
-    // تحديث المخزن (وهمي للعرض)
-    inventory[productName]--;
-    document.getElementById(`stock-${productName}`).innerText = inventory[productName];
-
-    updateAdminTable();
-    
-    // فتح واتساب للطلب
-    const msg = `يا حسين، الزبون ${customerName} محتاج ${productName}. الحساب: ${price}، دفع: ${paid}، الباقي (آجل): ${change}`;
-    window.open(`https://wa.me/201234567890?text=${encodeURIComponent(msg)}`);
+function showSection(id) {
+    document.querySelectorAll('.admin-panel').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    renderInv();
+    renderRep();
 }
 
-// تحديث جدول الإدارة بالبيانات الجديدة
-function updateAdminTable() {
-    const tableBody = document.getElementById('adminTableBody');
-    if (!tableBody) return;
+function addItem() {
+    const n = document.getElementById('pName').value;
+    const p = document.getElementById('pPrice').value;
+    const q = parseInt(document.getElementById('pQty').value);
+    if(n && p && q) {
+        prods.push({n, p, q});
+        update();
+    }
+}
 
-    tableBody.innerHTML = '';
-    salesData.forEach(s => {
-        const row = `
-            <tr>
-                <td>${s.customer}</td>
-                <td>${s.product}</td>
-                <td>${s.paid} ج.م</td>
-                <td style="color: ${s.remaining > 0 ? 'red' : 'white'}">${s.remaining} ج.م</td>
-                <td>${s.date}</td>
-            </tr>
-        `;
-        tableBody.innerHTML += row;
+function renderInv() {
+    const b = document.getElementById('invBody');
+    b.innerHTML = prods.map((x, i) => `<tr><td>${x.n}</td><td>${x.p}</td><td>${x.q}</td><td><button onclick="prods.splice(${i},1);update()">X</button></td></tr>`).join('');
+}
+
+function setOp(m) {
+    mode = m;
+    document.getElementById('opForm').style.display = 'block';
+    document.getElementById('opTitle').innerText = m == 'sell' ? 'فاتورة بيع' : 'إذن شراء';
+    const s = document.getElementById('prodSelector');
+    s.innerHTML = prods.map((x, i) => `<div>${x.n} <input type="number" class="q-in" data-i="${i}" placeholder="العدد" style="width:50px;"></div>`).join('');
+}
+
+function checkPay() {
+    document.getElementById('debtBox').style.display = document.getElementById('payType').value == 'debt' ? 'block' : 'none';
+}
+
+function confirmOp() {
+    const name = document.getElementById('partyName').value;
+    let total = 0;
+    let items = [];
+    document.querySelectorAll('.q-in').forEach(input => {
+        const v = parseInt(input.value);
+        if(v > 0) {
+            const i = input.dataset.i;
+            items.push(`${prods[i].n}(${v})`);
+            total += prods[i].p * v;
+            prods[i].q = mode == 'sell' ? prods[i].q - v : prods[i].q + v;
+        }
     });
+    const paid = document.getElementById('paidAmt').value || total;
+    trans.push({
+        d: new Date().toLocaleString('ar-EG'),
+        t: mode == 'sell' ? 'بيع' : 'شراء',
+        p: name,
+        i: items.join(', '),
+        tot: total,
+        s: document.getElementById('payType').value == 'debt' ? `آجل (باقي:${total-paid})` : 'كاش'
+    });
+    localStorage.setItem('h_t', JSON.stringify(trans));
+    update();
+    alert("تم الحفظ بنجاح!");
 }
 
-// الوظيفة القديمة للحفاظ على التوافق (القاعدة 3)
-function order(name) { 
-    window.open(`https://wa.me/201234567890?text=يا حسين محتاج ${name}`); 
+function renderRep() {
+    const b = document.getElementById('repBody');
+    b.innerHTML = trans.map(x => `<tr><td>${x.d}</td><td>${x.t}</td><td>${x.p}</td><td>${x.i}</td><td>${x.tot}</td><td>${x.s}</td></tr>`).join('');
+}
+
+function update() {
+    localStorage.setItem('h_p', JSON.stringify(prods));
+    renderInv();
+    renderRep();
+}
+
+function downloadExcel() {
+    window.print(); // أسهل طريقة للموبايل لحفظ الصفحة PDF أو طباعتها
 }
